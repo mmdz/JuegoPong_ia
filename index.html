@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Pong - Juego para 2 jugadores</title>
+  <style>
+    /* Estilos generales del cuerpo */
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #000;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      user-select: none;
+    }
+
+    /* Contenedor del canvas */
+    #game-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 90vh;
+    }
+
+    /* Lienzo del juego */
+    canvas {
+      background-color: #111;
+      border: 2px solid #fff;
+    }
+
+    /* Instrucciones del juego */
+    #instructions {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>PONG - Juego para 2 Jugadores</h1>
+  <div id="game-container">
+    <canvas id="gameCanvas" width="800" height="500"></canvas>
+  </div>
+  <div id="instructions">
+    <p><strong>Jugador 1:</strong> Usa las teclas <strong>A</strong> (subir) y <strong>Z</strong> (bajar)</p>
+    <p><strong>Jugador 2:</strong> Usa las teclas <strong>↑</strong> y <strong>↓</strong> del teclado</p>
+    <p>¡Anota para ganar puntos! El juego se reinicia automáticamente tras cada punto.</p>
+  </div>
+
+  <script>
+    // Obtener el canvas y su contexto
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Dimensiones del canvas
+    const WIDTH = canvas.width;
+    const HEIGHT = canvas.height;
+
+    // Variables del juego
+    let paddleHeight = 100;
+    let paddleWidth = 10;
+    let ballSize = 10;
+
+    // Puntuación
+    let score1 = 0;
+    let score2 = 0;
+
+    // Posiciones iniciales de las palas
+    let paddle1Y = HEIGHT / 2 - paddleHeight / 2;
+    let paddle2Y = HEIGHT / 2 - paddleHeight / 2;
+
+    // Velocidad de las palas
+    const paddleSpeed = 5;
+    let keys = {};
+
+    // Posición y velocidad de la pelota
+    let ballX = WIDTH / 2;
+    let ballY = HEIGHT / 2;
+    let ballSpeedX = 4;
+    let ballSpeedY = 3;
+
+    // Dibujar las palas
+    function drawPaddles() {
+      ctx.fillStyle = 'white';
+      ctx.fillRect(10, paddle1Y, paddleWidth, paddleHeight); // Jugador 1
+      ctx.fillRect(WIDTH - 20, paddle2Y, paddleWidth, paddleHeight); // Jugador 2
+    }
+
+    // Dibujar la pelota
+    function drawBall() {
+      ctx.fillStyle = 'white';
+      ctx.fillRect(ballX, ballY, ballSize, ballSize);
+    }
+
+    // Dibujar puntuación
+    function drawScore() {
+      ctx.font = "24px Arial";
+      ctx.fillText(`${score1} : ${score2}`, WIDTH / 2 - 30, 30);
+    }
+
+    // Limpiar el canvas
+    function clearCanvas() {
+      ctx.clearRect(0, 0, WIDTH, HEIGHT);
+    }
+
+    // Reiniciar pelota en el centro con dirección aleatoria
+    function resetBall() {
+      ballX = WIDTH / 2;
+      ballY = HEIGHT / 2;
+      ballSpeedX = -ballSpeedX; // Cambia de dirección
+      ballSpeedY = (Math.random() > 0.5 ? 1 : -1) * (2 + Math.random() * 3);
+    }
+
+    // Actualizar lógica del juego
+    function update() {
+      // Movimiento de palas
+      if (keys['a'] && paddle1Y > 0) paddle1Y -= paddleSpeed;
+      if (keys['z'] && paddle1Y + paddleHeight < HEIGHT) paddle1Y += paddleSpeed;
+
+      if (keys['ArrowUp'] && paddle2Y > 0) paddle2Y -= paddleSpeed;
+      if (keys['ArrowDown'] && paddle2Y + paddleHeight < HEIGHT) paddle2Y += paddleSpeed;
+
+      // Mover la pelota
+      ballX += ballSpeedX;
+      ballY += ballSpeedY;
+
+      // Rebote contra la parte superior/inferior
+      if (ballY <= 0 || ballY + ballSize >= HEIGHT) {
+        ballSpeedY = -ballSpeedY;
+      }
+
+      // Colisión con la pala del jugador 1
+      if (
+        ballX <= 20 &&
+        ballY + ballSize >= paddle1Y &&
+        ballY <= paddle1Y + paddleHeight
+      ) {
+        ballSpeedX = -ballSpeedX;
+      }
+
+      // Colisión con la pala del jugador 2
+      if (
+        ballX + ballSize >= WIDTH - 20 &&
+        ballY + ballSize >= paddle2Y &&
+        ballY <= paddle2Y + paddleHeight
+      ) {
+        ballSpeedX = -ballSpeedX;
+      }
+
+      // Punto para el jugador 2
+      if (ballX < 0) {
+        score2++;
+        resetBall();
+      }
+
+      // Punto para el jugador 1
+      if (ballX > WIDTH) {
+        score1++;
+        resetBall();
+      }
+    }
+
+    // Dibujar en cada fotograma
+    function draw() {
+      clearCanvas();
+      drawPaddles();
+      drawBall();
+      drawScore();
+    }
+
+    // Bucle del juego
+    function gameLoop() {
+      update();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    // Escuchar teclas presionadas
+    window.addEventListener('keydown', (e) => {
+      keys[e.key] = true;
+    });
+
+    // Escuchar teclas liberadas
+    window.addEventListener('keyup', (e) => {
+      keys[e.key] = false;
+    });
+
+    // Iniciar el juego
+    gameLoop();
+  </script>
+
+</body>
+</html>
